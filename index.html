@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FIFA 2026 Demand Decomposition — Astha Jain Portfolio</title>
+  <title>Event Demand Localization — FIFA 2026 — Demo</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <style>
     :root {
@@ -383,7 +383,7 @@
 
   <!-- Banners -->
   <div class="banner-conf">CONFIDENTIAL · Numbers are illustrative approximations from planning methodology work. No proprietary Walmart systems or operational results reproduced.</div>
-  <div class="banner-demo">&#9888; DEMO DATA — Illustrative numbers only. FIFA 2026 planning scenario; no proprietary Walmart systems or results reproduced.</div>
+  <div class="banner-demo">&#9888; DEMO — Event Demand Localization — FIFA 2026 · Illustrative numbers only. No proprietary Walmart systems or results reproduced.</div>
 
   <!-- Nav -->
   <nav>
@@ -398,7 +398,7 @@
         <option value="https://asthaj12.github.io/npi-launch-planning/">NPI Launch Planning</option>
         <option value="https://asthaj12.github.io/fom-backtesting/">FOM Backtesting</option>
         <option value="https://asthaj12.github.io/seasonal-event-intelligence/">Seasonal Event Intelligence</option>
-        <option value="https://asthaj12.github.io/fifa-2026-demand/" selected>FIFA 2026 Demand</option>
+        <option value="https://asthaj12.github.io/fifa-2026-demand/" selected>Event Demand Localization — FIFA 2026</option>
         <option value="https://asthaj12.github.io/shopify-demand-forecasting/">Shopify Demand Forecasting</option>
         <option value="https://asthaj12.github.io/cummins-capacity-risk/">Cummins Capacity Risk</option>
       </select>
@@ -409,7 +409,7 @@
   <div class="hero">
     <p class="hero-eyebrow">Demand Planning · Walmart · FIFA 2026</p>
     <h1>FIFA 2026 Cold-Start<br>Demand Decomposition</h1>
-    <p>A first-of-kind planning challenge: no historical FIFA data for U.S. host markets. Decomposed a $200M national demand opportunity into store-level signals using 4 hyper-local drivers — host city proximity, team affinity demographics, match tier stakes, and daypart watch-party behavior. Reallocated ~$50M to the markets that would actually convert it.</p>
+    <p>A first-of-kind planning challenge: no historical FIFA data for U.S. host markets. Decomposed a $200M national demand opportunity into store-level signals using 4 store-level drivers — host city proximity, team affinity demographics, match tier stakes, and daypart watch-party behavior. Reallocated ~$50M to the markets that would actually convert it.</p>
   </div>
 
   <!-- Tab Bar -->
@@ -430,7 +430,7 @@
         <div class="kpi-sub">Total FIFA demand to plan</div>
       </div>
       <div class="kpi">
-        <div class="kpi-label">Reallocated Hyper-Local</div>
+        <div class="kpi-label">Reallocated Store-Level</div>
         <div class="kpi-value" style="color:var(--aqua)">$50M</div>
         <div class="kpi-sub">Moved from blanket to local</div>
       </div>
@@ -460,8 +460,8 @@
         </div>
       </div>
       <div class="card">
-        <div class="card-title">Blanket Uplift vs. Hyper-Local Model</div>
-        <div class="card-desc">Blanket model applies the same % uplift to every city. Hyper-local model concentrates demand where it actually belongs.</div>
+        <div class="card-title">Blanket Uplift vs. Store-Level Model</div>
+        <div class="card-desc">Blanket model applies the same % uplift to every city. Store-level model concentrates demand where it actually belongs.</div>
         <div class="chart-wrap h300">
           <canvas id="c1bar"></canvas>
         </div>
@@ -769,7 +769,7 @@
 
   <!-- Footer -->
   <footer>
-    <p>FIFA 2026 Cold-Start Demand Decomposition · Astha Jain Portfolio · <a href="https://asthaj12.github.io/">asthaj12.github.io</a></p>
+    <p>Event Demand Localization — FIFA 2026 · Astha Jain Portfolio · <a href="https://asthaj12.github.io/">asthaj12.github.io</a></p>
     <p style="margin-top:8px">Numbers are illustrative for portfolio purposes. No proprietary Walmart data reproduced.</p>
   </footer>
 
@@ -852,7 +852,7 @@
             borderRadius: 4
           },
           {
-            label: 'Hyper-Local Model',
+            label: 'Store-Level Model',
             data: [42, 36, 28, 26, 14, 18],
             backgroundColor: [BLUE, BLUE, BLUE, AQUA, ORANGE, ORANGE].map(c => c + 'cc'),
             borderRadius: 4
