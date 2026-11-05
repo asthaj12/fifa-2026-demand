@@ -206,9 +206,9 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dd.open){dd
 </script>
 
 <div class="conf-banner">
-  <strong>Confidentiality notice:</strong> Numbers are illustrative approximations from planning methodology work. No proprietary Walmart systems or operational results reproduced.
+  <strong>Confidentiality notice:</strong> Numbers are illustrative approximations from planning methodology work. No proprietary retailer systems or operational results reproduced.
 </div>
-<div class="demo-banner">⚠ DEMO — Large-Event Demand Localization · Illustrative numbers only. Demand Planning · Walmart · Large-event planning. No proprietary Walmart systems or results reproduced.</div>
+<div class="demo-banner">⚠ DEMO — Large-Event Demand Localization · Illustrative numbers only. Demand Planning · Retail · Large-event planning. No proprietary retailer systems or results reproduced.</div>
 
 <div class="tab-bar" id="tabBar">
   <button class="tab-btn active" onclick="showTab('t1',this)">Demand Overview</button>
@@ -250,7 +250,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dd.open){dd
     <div class="kpi vt">
       <div class="lbl">Historical Analogs</div>
       <div class="val">3</div>
-      <div class="sub">Super Bowl, local events, prior soccer tournaments</div>
+      <div class="sub">Major sporting event, local events, prior soccer tournaments</div>
     </div>
   </div>
 
@@ -479,7 +479,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dd.open){dd
     <div class="kpi vt">
       <div class="lbl">Analogs Used</div>
       <div class="val">3</div>
-      <div class="sub">Super Bowl · Local Events · Soccer</div>
+      <div class="sub">Major Sporting Event · Local Events · Soccer</div>
     </div>
   </div>
 
@@ -502,7 +502,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dd.open){dd
 
   <div class="card" style="margin-bottom:16px;">
     <div class="ttl">Historical Analog Predictive Accuracy</div>
-    <div class="sub2">How well did each analog translate to tournament demand? Super Bowl watch-party food patterns showed the strongest signal transfer.</div>
+    <div class="sub2">How well did each analog translate to tournament demand? Watch-party food patterns from a major sporting event showed the strongest signal transfer.</div>
     <div class="cw">
       <canvas id="c5analog"></canvas>
     </div>
@@ -572,7 +572,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dd.open){dd
   <a href="https://github.com/asthaj12" target="_blank" rel="noopener">GitHub ↗</a>
   <a href="https://asthaj12.github.io/" target="_blank" rel="noopener">Portfolio ↗</a>
   <a href="mailto:asthajain.sc@gmail.com">Email</a>
-  <span style="margin-left:auto;color:var(--muted)">Large-Event Demand Localization · Numbers are illustrative for portfolio purposes. No proprietary Walmart data reproduced.</span>
+  <span style="margin-left:auto;color:var(--muted)">Large-Event Demand Localization · Numbers are illustrative for portfolio purposes. No proprietary retailer data reproduced.</span>
 </footer>
 
 <script>
@@ -1081,7 +1081,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dd.open){dd
     new Chart(document.getElementById('c5analog'), {
       type: 'bar',
       data: {
-        labels: ['Super Bowl\n(Watch-Party Food)', 'Local Large-Scale\nEvents (City Demand)', 'Prior Soccer\nTournaments (Team Affinity)'],
+        labels: ['Major sporting\nevent (Watch-Party Food)', 'Local Large-Scale\nEvents (City Demand)', 'Prior Soccer\nTournaments (Team Affinity)'],
         datasets: [{
           label: 'Predictive Accuracy (%)',
           data: [82, 71, 68],
