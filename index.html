@@ -1,792 +1,593 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FIFA 2026 Demand Decomposition — Astha Jain Portfolio</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --s0: #f9f9f7;
-      --s1: #fcfcfb;
-      --ink: #0b0b0b;
-      --sec: #52514e;
-      --muted: #898781;
-      --grid: #e1e0d9;
-      --border: rgba(11,11,11,.10);
-      --blue: #6366f1;
-      --orange: #eb6834;
-      --aqua: #1baf7a;
-      --yellow: #eda100;
-      --pink: #e87ba4;
-      --violet: #4a3aa7;
-      --red: #e34948;
-      --good: #0ca30c;
-      --warn: #fab219;
-      --crit: #d03b3b;
-    }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="FIFA 2026 event demand localization demo: demand overview, host city proximity, team affinity, match tier and daypart, and staged commitment. Illustrative data."/>
+<link rel="canonical" href="https://asthaj12.github.io/fifa-2026-demand/"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='system-ui,Arial,sans-serif' font-size='26' font-weight='800' fill='%23818cf8'%3EAJ%3C/text%3E%3C/svg%3E"/>
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Event Demand Localization — FIFA 2026 — Demo"/>
+<meta property="og:description" content="FIFA 2026 event demand localization demo: demand overview, host city proximity, team affinity, match tier and daypart, and staged commitment. Illustrative data."/>
+<meta property="og:url" content="https://asthaj12.github.io/fifa-2026-demand/"/>
+<meta property="og:image" content="https://asthaj12.github.io/assets/portfolio-share.png"/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Event Demand Localization — FIFA 2026 — Demo"/>
+<meta name="twitter:description" content="FIFA 2026 event demand localization demo: demand overview, host city proximity, team affinity, match tier and daypart, and staged commitment. Illustrative data."/>
+<meta name="twitter:image" content="https://asthaj12.github.io/assets/portfolio-share.png"/>
+<title>Event Demand Localization — FIFA 2026 — Demo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --s0:#f9f9f7;--s1:#fcfcfb;--ink:#0b0b0b;--sec:#52514e;--muted:#898781;
+  --grid:#e1e0d9;--border:rgba(11,11,11,.10);
+  --blue:#6366f1;--orange:#eb6834;--aqua:#1baf7a;--yellow:#eda100;
+  --pink:#e87ba4;--violet:#4a3aa7;
+  --good:#0ca30c;--warn:#fab219;--crit:#d03b3b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:13px;background:var(--s0);color:var(--ink);}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--s0);
-      color: var(--ink);
-      min-height: 100vh;
-    }
+.conf-banner{background:#fff8e1;border-bottom:2px solid var(--yellow);padding:10px 20px;font-size:11px;color:#7c5700;line-height:1.6;}
+.demo-banner{background:#fffbeb;border-bottom:1px solid #f59e0b;padding:7px 20px;font-size:11px;font-weight:600;color:#92400e;}
 
-    /* --- Banners --- */
-    .banner-conf {
-      background: var(--ink);
-      color: #fff;
-      text-align: center;
-      padding: 5px 16px;
-      font-size: 11px;
-      letter-spacing: 0.04em;
-    }
+.tab-bar{display:flex;padding:0 20px;border-bottom:1px solid var(--grid);background:var(--s0);position:sticky;top:var(--nav-h,48px);z-index:190;overflow-x:auto;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-btn{padding:10px 16px;border:none;background:none;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s,border-color .15s;flex-shrink:0;}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab-btn:hover:not(.active){color:var(--ink);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
 
-    .banner-demo {
-      background: var(--warn);
-      color: var(--ink);
-      text-align: center;
-      padding: 5px 16px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-    }
+main{padding:20px;max-width:1300px;margin:0 auto;}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:12px;margin-bottom:20px;}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+.kpi .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.kpi .val{font-size:21px;font-weight:700;margin:4px 0 2px;color:var(--ink);}
+.kpi .sub{font-size:11px;color:var(--sec);}
+.kpi.bl{border-left:3px solid var(--blue);}
+.kpi.or{border-left:3px solid var(--orange);}
+.kpi.gd{border-left:3px solid var(--good);}
+.kpi.yw{border-left:3px solid var(--yellow);}
+.kpi.aq{border-left:3px solid var(--aqua);}
+.kpi.vt{border-left:3px solid var(--violet);}
+.kpi.pk{border-left:3px solid var(--pink);}
 
-    /* --- Sticky Nav --- */
-    nav {
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      height: 48px;
-      background: rgba(249,249,247,0.88);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      gap: 16px;
-    }
+.chart-grid{display:grid;gap:16px;margin-bottom:16px;}
+.cols2{grid-template-columns:1fr 1fr;}
+.cols3{grid-template-columns:1fr 1fr 1fr;}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:16px;}
+.card .ttl{font-size:12px;font-weight:700;margin-bottom:3px;color:var(--ink);}
+.card .sub2{font-size:11px;color:var(--muted);margin-bottom:12px;}
+.cw{position:relative;height:220px;}
+.cw-tall{position:relative;height:280px;}
+.cw-lg{position:relative;height:340px;}
+.cw-sm{position:relative;height:180px;}
+.cw-xl{position:relative;height:400px;}
 
-    .nav-brand {
-      font-weight: 800;
-      font-size: 14px;
-      color: var(--ink);
-      text-decoration: none;
-      letter-spacing: -0.01em;
-      white-space: nowrap;
-    }
+.tbl-wrap{overflow-x:auto;margin-top:4px;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--grid);background:var(--s0);}
+td{padding:8px 10px;border-bottom:1px solid var(--grid);color:var(--sec);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f4f3f0;}
 
-    .nav-sep { flex: 1; }
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.b-crit{background:#fee2e2;color:var(--crit);}
+.b-warn{background:#fef9c3;color:#92400e;}
+.b-good{background:#dcfce7;color:#166534;}
+.b-info{background:#ede9fe;color:var(--violet);}
+.b-blue{background:#eef2ff;color:var(--blue);}
+.b-muted{background:#f3f4f6;color:#374151;}
+.b-orange{background:#fff3ed;color:#c2410c;}
 
-    .nav-select-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
+.decision-block{background:var(--s1);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:8px;padding:18px;margin-top:16px;}
+.decision-block .db-ttl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;}
+.decision-block p{font-size:12px;color:var(--sec);line-height:1.7;}
 
-    .nav-select-wrap select {
-      appearance: none;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 6px 28px 6px 10px;
-      font-size: 12px;
-      color: var(--sec);
-      cursor: pointer;
-      outline: none;
-      font-family: inherit;
-    }
+footer{margin-top:32px;padding:16px 20px;border-top:1px solid var(--grid);font-size:11px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+footer a{color:var(--blue);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
 
-    .nav-select-wrap::after {
-      content: '\25BE';
-      position: absolute;
-      right: 9px;
-      pointer-events: none;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    /* --- Hero --- */
-    .hero {
-      padding: 44px 24px 28px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .hero-eyebrow {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--blue);
-      margin-bottom: 10px;
-    }
-
-    .hero h1 {
-      font-size: clamp(26px, 4vw, 42px);
-      font-weight: 800;
-      line-height: 1.12;
-      letter-spacing: -0.025em;
-      margin-bottom: 14px;
-    }
-
-    .hero p {
-      font-size: 15px;
-      color: var(--sec);
-      max-width: 760px;
-      line-height: 1.65;
-    }
-
-    /* --- Tab Bar --- */
-    .tab-bar {
-      display: flex;
-      gap: 2px;
-      padding: 0 24px;
-      border-bottom: 1px solid var(--grid);
-      max-width: 1200px;
-      margin: 0 auto;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-
-    .tab-bar::-webkit-scrollbar { display: none; }
-
-    .tab-btn {
-      padding: 10px 18px;
-      border: none;
-      background: none;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--muted);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-      white-space: nowrap;
-      transition: color 0.15s, border-color 0.15s;
-      font-family: inherit;
-    }
-
-    .tab-btn:hover { color: var(--ink); }
-
-    .tab-btn.active {
-      color: var(--blue);
-      border-bottom-color: var(--blue);
-      font-weight: 700;
-    }
-
-    /* --- Tab Panels --- */
-    .tab-panel {
-      display: none;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 32px 24px 48px;
-    }
-
-    .tab-panel.active { display: block; }
-
-    /* --- KPI Row --- */
-    .kpi-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .kpi {
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
-    }
-
-    .kpi-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    .kpi-value {
-      font-size: 24px;
-      font-weight: 900;
-      letter-spacing: -0.025em;
-      color: var(--ink);
-      line-height: 1;
-    }
-
-    .kpi-sub {
-      font-size: 11px;
-      color: var(--sec);
-      margin-top: 5px;
-    }
-
-    /* --- Chart Grid --- */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 18px;
-    }
-
-    .span-2 { grid-column: span 2; }
-    .span-3 { grid-column: span 3; }
-
-    /* --- Chart Cards --- */
-    .card {
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px 20px 16px;
-    }
-
-    .card-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--ink);
-      margin-bottom: 3px;
-    }
-
-    .card-desc {
-      font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 14px;
-      line-height: 1.5;
-    }
-
-    .chart-wrap { position: relative; }
-    .h200 { height: 200px; }
-    .h220 { height: 220px; }
-    .h260 { height: 260px; }
-    .h300 { height: 300px; }
-    .h320 { height: 320px; }
-    .h360 { height: 360px; }
-    .h400 { height: 400px; }
-
-    /* --- Decision / Insight Box --- */
-    .insight-box {
-      background: rgba(99,102,241,0.05);
-      border-left: 4px solid var(--blue);
-      border-radius: 0 12px 12px 0;
-      padding: 20px 24px;
-      margin-top: 20px;
-    }
-
-    .insight-box h3 {
-      font-size: 13px;
-      font-weight: 800;
-      color: var(--violet);
-      margin-bottom: 8px;
-      letter-spacing: -0.01em;
-    }
-
-    .insight-box p {
-      font-size: 14px;
-      color: var(--ink);
-      line-height: 1.75;
-    }
-
-    /* --- Data Table --- */
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .data-table th {
-      text-align: left;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--muted);
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--grid);
-    }
-
-    .data-table td {
-      padding: 11px 14px;
-      border-bottom: 1px solid var(--border);
-      color: var(--ink);
-      vertical-align: top;
-      line-height: 1.5;
-    }
-
-    .data-table tr:last-child td { border-bottom: none; }
-
-    .data-table tr:hover td { background: rgba(99,102,241,0.03); }
-
-    .tag {
-      display: inline-block;
-      background: rgba(99,102,241,0.10);
-      color: var(--violet);
-      border-radius: 4px;
-      padding: 2px 8px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-    }
-
-    .tag-orange { background: rgba(235,104,52,0.10); color: var(--orange); }
-    .tag-aqua { background: rgba(27,175,122,0.10); color: var(--aqua); }
-    .tag-yellow { background: rgba(237,161,0,0.10); color: #a56e00; }
-
-    /* --- Section Label --- */
-    .section-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin: 24px 0 12px;
-    }
-
-    /* --- Footer --- */
-    footer {
-      text-align: center;
-      padding: 32px 24px;
-      font-size: 12px;
-      color: var(--muted);
-      border-top: 1px solid var(--grid);
-    }
-
-    footer a { color: var(--blue); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-
-    /* --- Responsive --- */
-    @media (max-width: 820px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-      .span-2, .span-3 { grid-column: span 1; }
-      .kpi-row { grid-template-columns: repeat(2, 1fr); }
-      .hero { padding: 28px 16px 20px; }
-      .tab-panel { padding: 24px 16px 40px; }
-      .tab-bar, nav { padding: 0 16px; }
-    }
-
-    @media (max-width: 480px) {
-      .kpi-row { grid-template-columns: 1fr 1fr; }
-      .kpi-value { font-size: 20px; }
-    }
-  </style>
+.page-intro{margin-bottom:16px;}
+.page-intro .pi-ttl{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.page-intro .pi-sub{font-size:12px;color:var(--sec);line-height:1.6;max-width:900px;}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:600;background:#eef2ff;color:var(--blue);}
+.timeline-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.tnode{border-radius:6px;padding:8px 10px;font-size:10px;font-weight:700;text-align:center;line-height:1.4;min-width:92px;color:#fff;}
+.tarrow{color:var(--muted);font-size:14px;}
+.timeline-insight{margin-top:14px;padding:12px 14px;background:var(--s0);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:6px;font-size:11px;color:var(--sec);line-height:1.7;}
+@media(max-width:900px){.cols2,.cols3{grid-template-columns:1fr;}}
+@media(max-width:480px){.kpi-row{grid-template-columns:1fr 1fr;}main{padding:14px;}}
+:root{--nav-h:48px;}
+.snav{position:sticky;top:0;z-index:200;background:rgba(249,249,247,.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:6px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;min-height:48px;}
+.snav ul{list-style:none;margin:0;padding:0;}
+.snav-brand{font-size:13px;font-weight:800;color:#0f172a;text-decoration:none;margin-right:16px;white-space:nowrap;}
+.snav-brand span{color:var(--blue);}
+.snav-menu,.snav-items,.snav-right{display:flex;align-items:center;gap:2px;}
+.snav-items{flex:1;min-width:0;}
+.snav-right{margin-left:auto;gap:6px;flex-shrink:0;}
+.snav-link,#snDrop>summary{display:flex;align-items:center;min-height:32px;padding:5px 10px;border-radius:5px;font-size:12px;font-weight:500;color:#475569;text-decoration:none;white-space:nowrap;transition:background .12s,color .12s;}
+.sndrop{position:relative;}
+#snDrop>summary{cursor:pointer;user-select:none;gap:4px;list-style:none;}
+#snDrop>summary::-webkit-details-marker{display:none;}
+.snav-link:hover,#snDrop>summary:hover,#snDrop[open]>summary{background:rgba(99,102,241,.07);color:#0f172a;}
+#snDrop>summary svg{width:9px;height:9px;flex-shrink:0;transition:transform .18s;}
+#snDrop[open]>summary svg{transform:rotate(180deg);}
+.sndrop-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:210;width:300px;max-width:calc(100vw - 24px);max-height:min(70vh,520px);overflow-y:auto;overscroll-behavior:contain;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:5px;box-shadow:0 12px 40px rgba(0,0,0,.14);}
+.sndrop-gh{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;padding:8px 10px 3px;}
+.sndrop-grp+.sndrop-grp{margin-top:4px;border-top:1px solid #e2e8f0;}
+.sndrop-item{display:flex;align-items:center;gap:8px;min-height:40px;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:500;color:#475569;text-decoration:none;transition:background .1s,color .1s;}
+.sndrop-item:hover,.sndrop-item[aria-current]{background:rgba(99,102,241,.09);color:#0f172a;}
+.sndrop-icon{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.sndrop-lbl{font-weight:600;color:#0f172a;font-size:11px;}
+.sndrop-sub{font-size:10px;color:#94a3b8;margin-top:1px;}
+.snav-badge{display:flex;align-items:center;min-height:32px;padding:4px 12px;border-radius:5px;font-size:11px;font-weight:600;border:1px solid #e2e8f0;color:#475569;text-decoration:none;white-space:nowrap;transition:border-color .12s,color .12s,background .12s;}
+.snav-badge:hover{background:#eef2ff;border-color:#6366f1;color:#6366f1;}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+.tab-bar,.tab-nav{position:sticky;top:var(--nav-h,48px);z-index:190;}
+main,.tab-pane,.card{min-width:0;}
+@media (max-width:600px){
+:root{--nav-h:96px;}
+.snav{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 8px;padding:6px 12px;}
+.snav-brand{grid-column:1;grid-row:1;justify-self:start;margin:0;display:flex;align-items:center;min-height:40px;}
+.snav-menu{grid-column:2;grid-row:1;justify-self:end;}
+.sndrop{position:static;}
+.sndrop-menu{left:12px;right:12px;width:auto;max-width:none;}
+.snav-items{grid-column:1;grid-row:2;justify-self:start;flex:none;}
+.snav-right{grid-column:2;grid-row:2;justify-self:end;margin-left:0;}
+.snav-link,#snDrop>summary,.snav-badge,.tab-btn{min-height:40px;}
+.tab-bar,.tab-nav{padding-left:12px;padding-right:12px;}
+main{padding:14px;}
+}
+</style>
 </head>
 <body>
 
-  <!-- Banners -->
-  <div class="banner-conf">CONFIDENTIAL · Numbers are illustrative approximations from planning methodology work. No proprietary Walmart systems or operational results reproduced.</div>
-  <div class="banner-demo">&#9888; DEMO DATA — Illustrative numbers only. FIFA 2026 planning scenario; no proprietary Walmart systems or results reproduced.</div>
+<nav class="snav" aria-label="Portfolio and dashboard navigation">
+  <a href="https://asthaj12.github.io/" class="snav-brand">AJ<span> · Portfolio</span></a>
+  <ul class="snav-menu">
+    <li class="sndrop">
+      <details id="snDrop">
+        <summary>Dashboards<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false"><path d="M2 3.5l3 3 3-3"/></svg></summary>
+        <div class="sndrop-menu">
+          <div class="sndrop-grp">
+            <p class="sndrop-gh">Capacity &amp; Supply</p>
+            <ul>
+            <li><a class="sndrop-item" href="https://asthaj12.github.io/ai-customer-strategy-lab/"><div class="sndrop-icon" style="background:rgba(99,102,241,.12)">🧭</div><div><div class="sndrop-lbl">Cloud AI Strategy Lab</div><div class="sndrop-sub">Long-tail AI customers · Unit economics · Capacity pooling</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/cummins-capacity-expansion/"><div class="sndrop-icon" style="background:rgba(99,102,241,.12)">📈</div><div><div class="sndrop-lbl">Long-Range Capacity Planning</div><div class="sndrop-sub">Long-range planning · $12M protected · 15+ lines</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/cummins-capacity-risk/"><div class="sndrop-icon" style="background:rgba(235,104,52,.13)">🏭</div><div><div class="sndrop-lbl">Cummins Capacity &amp; Risk</div><div class="sndrop-sub">Supplier risk · Recovery · $35M averted</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/npi-launch-planning/"><div class="sndrop-icon" style="background:rgba(235,104,52,.13)">🚀</div><div><div class="sndrop-lbl">NPI Launch Planning</div><div class="sndrop-sub">New product intro · Supply readiness</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/replenishment-risk/"><div class="sndrop-icon" style="background:rgba(237,161,0,.12)">📦</div><div><div class="sndrop-lbl">Safety Stock Monitor</div><div class="sndrop-sub">Violation monitor · Risk items</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/logitech-supply-planning/"><div class="sndrop-icon" style="background:rgba(235,104,52,.13)">🌐</div><div><div class="sndrop-lbl">Global S&amp;OP</div><div class="sndrop-sub">Gaming E&amp;O · Supply disruption · Decision forum</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/shopify-demand-forecasting/"><div class="sndrop-icon" style="background:rgba(99,102,241,.12)">🔀</div><div><div class="sndrop-lbl">Network Demand Planning</div><div class="sndrop-sub">Network overview · Forecast RCA · BFCM peak</div></div></a></li>
+            </ul>
+          </div>
+          <div class="sndrop-grp">
+            <p class="sndrop-gh">Forecasting &amp; Decisions</p>
+            <ul>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/forecast-governance/"><div class="sndrop-icon" style="background:rgba(99,102,241,.12)">📊</div><div><div class="sndrop-lbl">Forecast Governance</div><div class="sndrop-sub">Anomaly triage · Bias correction</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/fom-backtesting/"><div class="sndrop-icon" style="background:rgba(27,175,122,.12)">🧪</div><div><div class="sndrop-lbl">FOM Backtesting</div><div class="sndrop-sub">Model validation · Historical accuracy</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/forecast-accuracy/"><div class="sndrop-icon" style="background:rgba(27,175,122,.12)">📉</div><div><div class="sndrop-lbl">Forecast Accuracy</div><div class="sndrop-sub">Period recap · Bias by category · Planner adjustments</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/seasonal-event-intelligence/"><div class="sndrop-icon" style="background:rgba(237,161,0,.12)">🎯</div><div><div class="sndrop-lbl">Seasonal Event Intelligence</div><div class="sndrop-sub">Event lift · Demand signals</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/seasonal-planning/"><div class="sndrop-icon" style="background:rgba(99,102,241,.12)">📅</div><div><div class="sndrop-lbl">Scenario Planning</div><div class="sndrop-sub">Scenario dashboard · Planning calendar · Risk flags</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/pricing-demand-response/"><div class="sndrop-icon" style="background:rgba(232,123,164,.14)">💲</div><div><div class="sndrop-lbl">Pricing &amp; Demand Response</div><div class="sndrop-sub">Elasticity &amp; lift · Price event tracking</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/fifa-2026-demand/" aria-current="page"><div class="sndrop-icon" style="background:rgba(27,175,122,.12)">⚽</div><div><div class="sndrop-lbl">FIFA Demand</div><div class="sndrop-sub">Host city proximity · Team affinity · Staged commitment</div></div></a></li>
+              <li><a class="sndrop-item" href="https://asthaj12.github.io/snap-monitoring/"><div class="sndrop-icon" style="background:rgba(99,102,241,.12)">📜</div><div><div class="sndrop-lbl">Policy Demand Signals</div><div class="sndrop-sub">Test &amp; control · Demand signal · Hypothesis testing</div></div></a></li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </li>
+  </ul>
+  <ul class="snav-items">
+    <li><a class="snav-link" href="https://asthaj12.github.io/#projects">Projects</a></li>
+    <li><a class="snav-link" href="https://asthaj12.github.io/#skills">Skills</a></li>
+  </ul>
+  <ul class="snav-right">
+    <li><a class="snav-badge" href="https://linkedin.com/in/asthajain12" target="_blank" rel="noopener">LinkedIn ↗</a></li>
+    <li><a class="snav-badge" href="https://github.com/asthaj12" target="_blank" rel="noopener">GitHub ↗</a></li>
+  </ul>
+</nav>
+<script>
+(function(){
+var nav=document.querySelector('.snav');
+var dd=document.getElementById('snDrop');
+function setNavH(){document.documentElement.style.setProperty('--nav-h',nav.offsetHeight+'px');}
+if(window.ResizeObserver){new ResizeObserver(setNavH).observe(nav);}else{setNavH();window.addEventListener('resize',setNavH);}
+dd.addEventListener('focusout',function(e){if(e.relatedTarget&&!dd.contains(e.relatedTarget)){dd.open=false;}});
+document.addEventListener('pointerdown',function(e){if(dd.open&&!dd.contains(e.target)){dd.open=false;}});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&dd.open){dd.open=false;dd.querySelector('summary').focus();}});
+})();
+</script>
 
-  <!-- Nav -->
-  <nav>
-    <a class="nav-brand" href="https://asthaj12.github.io/">AJ · Portfolio</a>
-    <div class="nav-sep"></div>
-    <div class="nav-select-wrap">
-      <select onchange="if(this.value){window.location.href=this.value;this.value=''}">
-        <option value="">Navigate portfolio &rarr;</option>
-        <option value="https://asthaj12.github.io/forecast-governance/">Forecast Governance</option>
-        <option value="https://asthaj12.github.io/seasonal-planning/">Seasonal Planning</option>
-        <option value="https://asthaj12.github.io/pricing-demand-response/">Pricing &amp; Demand Response</option>
-        <option value="https://asthaj12.github.io/npi-launch-planning/">NPI Launch Planning</option>
-        <option value="https://asthaj12.github.io/fom-backtesting/">FOM Backtesting</option>
-        <option value="https://asthaj12.github.io/seasonal-event-intelligence/">Seasonal Event Intelligence</option>
-        <option value="https://asthaj12.github.io/fifa-2026-demand/" selected>FIFA 2026 Demand</option>
-        <option value="https://asthaj12.github.io/shopify-demand-forecasting/">Shopify Demand Forecasting</option>
-        <option value="https://asthaj12.github.io/cummins-capacity-risk/">Cummins Capacity Risk</option>
-      </select>
-    </div>
-  </nav>
+<div class="conf-banner">
+  <strong>Confidentiality notice:</strong> Numbers are illustrative approximations from planning methodology work. No proprietary Walmart systems or operational results reproduced.
+</div>
+<div class="demo-banner">⚠ DEMO — Event Demand Localization — FIFA 2026 · Illustrative numbers only. Demand Planning · Walmart · FIFA 2026. No proprietary Walmart systems or results reproduced.</div>
 
-  <!-- Hero -->
-  <div class="hero">
-    <p class="hero-eyebrow">Demand Planning · Walmart · FIFA 2026</p>
-    <h1>FIFA 2026 Cold-Start<br>Demand Decomposition</h1>
-    <p>A first-of-kind planning challenge: no historical FIFA data for U.S. host markets. Decomposed a $200M national demand opportunity into store-level signals using 4 hyper-local drivers — host city proximity, team affinity demographics, match tier stakes, and daypart watch-party behavior. Reallocated ~$50M to the markets that would actually convert it.</p>
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" onclick="showTab('t1',this)">Demand Overview</button>
+  <button class="tab-btn" onclick="showTab('t2',this)">Host City Proximity</button>
+  <button class="tab-btn" onclick="showTab('t3',this)">Team Affinity</button>
+  <button class="tab-btn" onclick="showTab('t4',this)">Match Tier &amp; Daypart</button>
+  <button class="tab-btn" onclick="showTab('t5',this)">Staged Commitment</button>
+</div>
+
+<main>
+
+<div class="tab-pane active" id="t1">
+  <div class="page-intro">
+    <div class="pi-ttl">FIFA 2026 Cold-Start Demand Decomposition</div>
+    <div class="pi-sub">A first-of-kind planning challenge: no historical FIFA data for U.S. host markets. Decomposed a $200M national demand opportunity into store-level signals using 4 store-level drivers — host city proximity, team affinity demographics, match tier stakes, and daypart watch-party behavior. Reallocated ~$50M to the markets that would actually convert it.</div>
   </div>
 
-  <!-- Tab Bar -->
-  <div class="tab-bar">
-    <button class="tab-btn active" onclick="showTab('t1',this)">Demand Overview</button>
-    <button class="tab-btn" onclick="showTab('t2',this)">Host City Proximity</button>
-    <button class="tab-btn" onclick="showTab('t3',this)">Team Affinity</button>
-    <button class="tab-btn" onclick="showTab('t4',this)">Match Tier &amp; Daypart</button>
-    <button class="tab-btn" onclick="showTab('t5',this)">Staged Commitment</button>
+  <div class="kpi-row">
+    <div class="kpi bl">
+      <div class="lbl">National Opportunity</div>
+      <div class="val">$200M</div>
+      <div class="sub">Total FIFA demand to plan</div>
+    </div>
+    <div class="kpi or">
+      <div class="lbl">Reallocated Store-Level</div>
+      <div class="val" style="color:var(--aqua)">$50M</div>
+      <div class="sub">Moved from blanket to local</div>
+    </div>
+    <div class="kpi yw">
+      <div class="lbl">Host Cities</div>
+      <div class="val">16</div>
+      <div class="sub">Across the U.S.</div>
+    </div>
+    <div class="kpi aq">
+      <div class="lbl">Demand Drivers</div>
+      <div class="val">4</div>
+      <div class="sub">Store-level signals</div>
+    </div>
+    <div class="kpi vt">
+      <div class="lbl">Historical Analogs</div>
+      <div class="val">3</div>
+      <div class="sub">Super Bowl, local events, prior soccer tournaments</div>
+    </div>
   </div>
 
-  <!-- ===== TAB 1: DEMAND OVERVIEW ===== -->
-  <div class="tab-panel active" id="t1">
-    <div class="kpi-row">
-      <div class="kpi">
-        <div class="kpi-label">National Opportunity</div>
-        <div class="kpi-value">$200M</div>
-        <div class="kpi-sub">Total FIFA demand to plan</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Reallocated Hyper-Local</div>
-        <div class="kpi-value" style="color:var(--aqua)">$50M</div>
-        <div class="kpi-sub">Moved from blanket to local</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Host Cities</div>
-        <div class="kpi-value">16</div>
-        <div class="kpi-sub">Across the U.S.</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Demand Drivers</div>
-        <div class="kpi-value">4</div>
-        <div class="kpi-sub">Store-level signals</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Historical Analogs</div>
-        <div class="kpi-value">3</div>
-        <div class="kpi-sub">Super Bowl, local events, prior soccer tournaments</div>
-      </div>
-    </div>
-
-    <div class="grid-2" style="margin-bottom:18px">
-      <div class="card">
-        <div class="card-title">$200M Demand Decomposition</div>
-        <div class="card-desc">Four demand pools — each requires a different planning model and store-selection logic</div>
-        <div class="chart-wrap h300">
-          <canvas id="c1donut"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Blanket Uplift vs. Hyper-Local Model</div>
-        <div class="card-desc">Blanket model applies the same % uplift to every city. Hyper-local model concentrates demand where it actually belongs.</div>
-        <div class="chart-wrap h300">
-          <canvas id="c1bar"></canvas>
-        </div>
-      </div>
-    </div>
-
+  <div class="chart-grid cols2">
     <div class="card">
-      <div class="card-title">Staged Commitment Curve — Tournament Timeline</div>
-      <div class="card-desc">Early matches = small bets. Rapid learning loops use group-stage actuals to update assumptions before knockout rounds.</div>
-      <div class="chart-wrap h260">
-        <canvas id="c1line"></canvas>
+      <div class="ttl">$200M Demand Decomposition</div>
+      <div class="sub2">Four demand pools — each requires a different planning model and store-selection logic</div>
+      <div class="cw-tall">
+        <canvas id="c1donut"></canvas>
       </div>
     </div>
-
-    <div class="insight-box">
-      <h3>Why Blanket Uplift Fails</h3>
-      <p>A blanket national uplift fails because FIFA demand is fundamentally local. The host city effect, fanbase demographics, and match stakes all create store-level demand patterns that a national model cannot see. Applying an average uplift to every store means over-stocking in cities with no host venue and no fanbase concentration — while leaving the stores that matter under-resourced. The $50M reallocation represents correcting exactly this misallocation before it happens.</p>
-    </div>
-  </div>
-
-  <!-- ===== TAB 2: HOST CITY PROXIMITY ===== -->
-  <div class="tab-panel" id="t2">
-    <div class="kpi-row">
-      <div class="kpi">
-        <div class="kpi-label">Host Cities</div>
-        <div class="kpi-value">16</div>
-        <div class="kpi-sub">U.S. venues confirmed</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Proximity Radius</div>
-        <div class="kpi-value">50 mi</div>
-        <div class="kpi-sub">Primary demand bubble</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Epicenter Uplift</div>
-        <div class="kpi-value" style="color:var(--orange)">3.2x</div>
-        <div class="kpi-sub">NYC stores vs. national avg</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Decay at 100 mi</div>
-        <div class="kpi-value">1.4x</div>
-        <div class="kpi-sub">Rapid drop-off in pull</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">High-Proximity Stores</div>
-        <div class="kpi-value">~2,100</div>
-        <div class="kpi-sub">Within 50 mi of a host city</div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:18px">
-      <div class="card-title">Host City Demand Uplift Multiplier</div>
-      <div class="card-desc">Multiplier relative to national average (1.0x). Derived from Fan Fest attendance projections, ticket sales distribution, and hotel bookings.</div>
-      <div class="chart-wrap h360">
-        <canvas id="c2hbar"></canvas>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Demand Decay by Distance from Host City</div>
-        <div class="card-desc">Demand pull drops sharply beyond 50 miles — stores at 100+ miles see near-national-average demand</div>
-        <div class="chart-wrap h280">
-          <canvas id="c2decay"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Category Uplift by City Tier</div>
-        <div class="card-desc">Tier 1 = NYC/LA · Tier 2 = Dallas/Miami/SF · Tier 3 = smaller host cities. Food/bev vs. merch vs. apparel vary by tier.</div>
-        <div class="chart-wrap h280">
-          <canvas id="c2tier"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== TAB 3: TEAM AFFINITY ===== -->
-  <div class="tab-panel" id="t3">
-    <div class="kpi-row">
-      <div class="kpi">
-        <div class="kpi-label">Countries Represented</div>
-        <div class="kpi-value">32</div>
-        <div class="kpi-sub">Qualified FIFA nations</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Top Affinity Markets</div>
-        <div class="kpi-value">10</div>
-        <div class="kpi-sub">Modeled with census data</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Stores Flagged</div>
-        <div class="kpi-value">~3,400</div>
-        <div class="kpi-sub">Affinity-adjusted inventory</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">SKUs Affected</div>
-        <div class="kpi-value">~890</div>
-        <div class="kpi-sub">Apparel, gear, food/bev</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Revenue at Stake</div>
-        <div class="kpi-value" style="color:var(--blue)">$40M</div>
-        <div class="kpi-sub">Team affinity demand pool</div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:18px">
-      <div class="card-title">Top 10 Team Affinity Markets — U.S. Population Concentration</div>
-      <div class="card-desc">Indexed demand potential based on diaspora population concentration, prior soccer viewership data, and census tract mapping to store trade areas</div>
-      <div class="chart-wrap h360">
-        <canvas id="c3affinity"></canvas>
-      </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Team Affinity Demand Premium by Category</div>
-        <div class="card-desc">Premium relative to non-affinity stores in same DMA during match windows</div>
-        <div class="chart-wrap h280">
-          <canvas id="c3premium"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Demand Variance: With vs. Without Affinity Model</div>
-        <div class="card-desc">Top 5 countries. Without the model, demand is uniform across cities — missing the true concentration.</div>
-        <div class="chart-wrap h280">
-          <canvas id="c3variance"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== TAB 4: MATCH TIER & DAYPART ===== -->
-  <div class="tab-panel" id="t4">
-    <div class="kpi-row">
-      <div class="kpi">
-        <div class="kpi-label">Match Tiers</div>
-        <div class="kpi-value">4</div>
-        <div class="kpi-sub">Group → R16 → QF → SF/Final</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Peak Demand Tier</div>
-        <div class="kpi-value" style="color:var(--orange)">Final</div>
-        <div class="kpi-sub">4.2x demand multiplier</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Daypart Windows</div>
-        <div class="kpi-value">6</div>
-        <div class="kpi-sub">Modeled time buckets</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Watch-Party Peak</div>
-        <div class="kpi-value">2–4 PM</div>
-        <div class="kpi-sub">Pre-match demand window</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Pre-Match Window</div>
-        <div class="kpi-value">2 hr</div>
-        <div class="kpi-sub">Key stocking window</div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:18px">
-      <div class="card-title">Demand Multiplier by Match Tier — Food/Bev vs. Merch vs. Apparel</div>
-      <div class="card-desc">Multiplier relative to non-match baseline. Finals generate 4.2x food/bev demand; merch and apparel spike earlier in the tournament.</div>
-      <div class="chart-wrap h280">
-        <canvas id="c4tier"></canvas>
-      </div>
-    </div>
-
-    <div class="grid-2" style="margin-bottom:18px">
-      <div class="card">
-        <div class="card-title">Daypart Demand Curve — Match Day vs. Baseline</div>
-        <div class="card-desc">90-min match + 2-hr pre + 1-hr post window vs. typical daily demand pattern. Food/bev spikes sharply pre-match.</div>
-        <div class="chart-wrap h280">
-          <canvas id="c4daypart"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Top Watch-Party SKUs by Demand Elasticity</div>
-        <div class="card-desc">Uplift during match windows vs. non-match baseline. Beer/seltzers and chips see the most elastic response.</div>
-        <div class="chart-wrap h280">
-          <canvas id="c4sku"></canvas>
-        </div>
-      </div>
-    </div>
-
     <div class="card">
-      <div class="card-title">Demand by Match Round — Tournament Timeline (Weeks 1–8)</div>
-      <div class="card-desc">Stacked view shows escalating demand commitment as the tournament progresses. Group stage = broad base; Final week = concentrated spike.</div>
-      <div class="chart-wrap h260">
-        <canvas id="c4timeline"></canvas>
+      <div class="ttl">Blanket Uplift vs. Store-Level Model</div>
+      <div class="sub2">Blanket model applies the same % uplift to every city. Store-level model concentrates demand where it actually belongs.</div>
+      <div class="cw-tall">
+        <canvas id="c1bar"></canvas>
       </div>
     </div>
   </div>
 
-  <!-- ===== TAB 5: STAGED COMMITMENT ===== -->
-  <div class="tab-panel" id="t5">
-    <div class="kpi-row">
-      <div class="kpi">
-        <div class="kpi-label">Initial Commitment</div>
-        <div class="kpi-value">30%</div>
-        <div class="kpi-sub">Pre-tournament position</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Final Commitment</div>
-        <div class="kpi-value" style="color:var(--aqua)">85%</div>
-        <div class="kpi-sub">By knockout rounds</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Learning Loops</div>
-        <div class="kpi-value">4</div>
-        <div class="kpi-sub">Actuals → update → re-bet</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Demand Scenarios</div>
-        <div class="kpi-value">3</div>
-        <div class="kpi-sub">Low / Base / High</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Analogs Used</div>
-        <div class="kpi-value">3</div>
-        <div class="kpi-sub">Super Bowl · Local Events · Soccer</div>
-      </div>
+  <div class="card">
+    <div class="ttl">Staged Commitment Curve — Tournament Timeline</div>
+    <div class="sub2">Early matches = small bets. Rapid learning loops use group-stage actuals to update assumptions before knockout rounds.</div>
+    <div class="cw-tall">
+      <canvas id="c1line"></canvas>
     </div>
+  </div>
 
-    <div class="grid-2" style="margin-bottom:18px">
-      <div class="card">
-        <div class="card-title">Commitment Curve — Tournament Timeline</div>
-        <div class="card-desc">Starting at T-12 weeks before the tournament. Each learning loop steps up the commitment level as actuals confirm or challenge assumptions.</div>
-        <div class="chart-wrap h280">
-          <canvas id="c5curve"></canvas>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Scenario Accuracy at Each Learning Loop</div>
-        <div class="card-desc">How close were Low/Base/High scenarios to actuals at each checkpoint? Accuracy tightens as the learning loop accumulates signal.</div>
-        <div class="chart-wrap h280">
-          <canvas id="c5accuracy"></canvas>
-        </div>
-      </div>
+  <div class="decision-block">
+    <div class="db-ttl">Why Blanket Uplift Fails</div>
+    <p>A blanket national uplift fails because FIFA demand is fundamentally local. The host city effect, fanbase demographics, and match stakes all create store-level demand patterns that a national model cannot see. Applying an average uplift to every store means over-stocking in cities with no host venue and no fanbase concentration — while leaving the stores that matter under-resourced. The $50M reallocation represents correcting exactly this misallocation before it happens.</p>
+  </div>
+</div>
+<div class="tab-pane" id="t2">
+  <div class="kpi-row">
+    <div class="kpi bl">
+      <div class="lbl">Host Cities</div>
+      <div class="val">16</div>
+      <div class="sub">U.S. venues confirmed</div>
     </div>
-
-    <div class="card" style="margin-bottom:18px">
-      <div class="card-title">Historical Analog Predictive Accuracy</div>
-      <div class="card-desc">How well did each analog translate to FIFA demand? Super Bowl watch-party food patterns showed the strongest signal transfer.</div>
-      <div class="chart-wrap h200">
-        <canvas id="c5analog"></canvas>
-      </div>
+    <div class="kpi or">
+      <div class="lbl">Proximity Radius</div>
+      <div class="val">50 mi</div>
+      <div class="sub">Primary demand bubble</div>
     </div>
+    <div class="kpi yw">
+      <div class="lbl">Epicenter Uplift</div>
+      <div class="val" style="color:var(--orange)">3.2x</div>
+      <div class="sub">NYC stores vs. national avg</div>
+    </div>
+    <div class="kpi aq">
+      <div class="lbl">Decay at 100 mi</div>
+      <div class="val">1.4x</div>
+      <div class="sub">Rapid drop-off in pull</div>
+    </div>
+    <div class="kpi vt">
+      <div class="lbl">High-Proximity Stores</div>
+      <div class="val">~2,100</div>
+      <div class="sub">Within 50 mi of a host city</div>
+    </div>
+  </div>
 
+  <div class="card" style="margin-bottom:16px;">
+    <div class="ttl">Host City Demand Uplift Multiplier</div>
+    <div class="sub2">Multiplier relative to national average (1.0x). Derived from Fan Fest attendance projections, ticket sales distribution, and hotel bookings.</div>
+    <div class="cw-lg">
+      <canvas id="c2hbar"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-grid cols2">
     <div class="card">
-      <div class="card-title">Learning Loop Structure</div>
-      <div class="card-desc">Four structured loops — each triggered by a tournament milestone, each using new actuals to update assumptions and unlock incremental commitment</div>
-      <div style="overflow-x:auto">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Loop</th>
-              <th>Trigger</th>
-              <th>Data Used</th>
-              <th>What Updated</th>
-              <th>Commitment Delta</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><span class="tag">Loop 1</span></td>
-              <td>Pre-tournament (T-4 wks)</td>
-              <td>Analog calibration, ticket sales, hotel bookings</td>
-              <td>City-tier demand multipliers, initial scenario widths</td>
-              <td><strong>+0% → 30%</strong> (initial commit)</td>
-            </tr>
-            <tr>
-              <td><span class="tag tag-orange">Loop 2</span></td>
-              <td>After Group Stage Wk 1-2 actuals</td>
-              <td>POS actuals vs. plan, watch-party conversion rates</td>
-              <td>Food/bev uplift assumptions, daypart curve shape</td>
-              <td><strong>30% → 52%</strong> (+22 pp)</td>
-            </tr>
-            <tr>
-              <td><span class="tag tag-aqua">Loop 3</span></td>
-              <td>Round of 16 complete</td>
-              <td>City-level POS, team elimination outcomes</td>
-              <td>Team affinity weights (adjust for eliminated teams), R16 performance</td>
-              <td><strong>52% → 70%</strong> (+18 pp)</td>
-            </tr>
-            <tr>
-              <td><span class="tag tag-yellow">Loop 4</span></td>
-              <td>Quarterfinal complete</td>
-              <td>SF/Final market data, remaining team fan concentration</td>
-              <td>Final-week city allocations, apparel assortment for surviving teams</td>
-              <td><strong>70% → 85%</strong> (+15 pp)</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="ttl">Demand Decay by Distance from Host City</div>
+      <div class="sub2">Demand pull drops sharply beyond 50 miles — stores at 100+ miles see near-national-average demand</div>
+      <div class="cw-tall">
+        <canvas id="c2decay"></canvas>
       </div>
     </div>
-
-    <div class="insight-box" style="margin-top:20px">
-      <h3>Why Staged Commitment Beats Full Pre-Commitment</h3>
-      <p>No analog perfectly predicts a first-of-kind event. Committing 100% of inventory before the tournament would lock capital in scenarios that actuals quickly contradict — wrong cities, wrong teams still in, wrong SKU mix. The staged approach trades a small margin loss on expedited orders (loops 2–4) for a major reduction in markdown risk on committed-but-wrong inventory. Each loop narrows the scenario cone and unlocks the next tranche of commitment with much higher confidence.</p>
+    <div class="card">
+      <div class="ttl">Category Uplift by City Tier</div>
+      <div class="sub2">Tier 1 = NYC/LA · Tier 2 = Dallas/Miami/SF · Tier 3 = smaller host cities. Food/bev vs. merch vs. apparel vary by tier.</div>
+      <div class="cw-tall">
+        <canvas id="c2tier"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="tab-pane" id="t3">
+  <div class="kpi-row">
+    <div class="kpi bl">
+      <div class="lbl">Countries Represented</div>
+      <div class="val">32</div>
+      <div class="sub">Qualified FIFA nations</div>
+    </div>
+    <div class="kpi or">
+      <div class="lbl">Top Affinity Markets</div>
+      <div class="val">10</div>
+      <div class="sub">Modeled with census data</div>
+    </div>
+    <div class="kpi yw">
+      <div class="lbl">Stores Flagged</div>
+      <div class="val">~3,400</div>
+      <div class="sub">Affinity-adjusted inventory</div>
+    </div>
+    <div class="kpi aq">
+      <div class="lbl">SKUs Affected</div>
+      <div class="val">~890</div>
+      <div class="sub">Apparel, gear, food/bev</div>
+    </div>
+    <div class="kpi vt">
+      <div class="lbl">Revenue at Stake</div>
+      <div class="val" style="color:var(--blue)">$40M</div>
+      <div class="sub">Team affinity demand pool</div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer>
-    <p>FIFA 2026 Cold-Start Demand Decomposition · Astha Jain Portfolio · <a href="https://asthaj12.github.io/">asthaj12.github.io</a></p>
-    <p style="margin-top:8px">Numbers are illustrative for portfolio purposes. No proprietary Walmart data reproduced.</p>
-  </footer>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="ttl">Top 10 Team Affinity Markets — U.S. Population Concentration</div>
+    <div class="sub2">Indexed demand potential based on diaspora population concentration, prior soccer viewership data, and census tract mapping to store trade areas</div>
+    <div class="cw-lg">
+      <canvas id="c3affinity"></canvas>
+    </div>
+  </div>
 
-  <script>
-    // --- Tab switching ---
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Team Affinity Demand Premium by Category</div>
+      <div class="sub2">Premium relative to non-affinity stores in same DMA during match windows</div>
+      <div class="cw-tall">
+        <canvas id="c3premium"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ttl">Demand Variance: With vs. Without Affinity Model</div>
+      <div class="sub2">Top 5 countries. Without the model, demand is uniform across cities — missing the true concentration.</div>
+      <div class="cw-tall">
+        <canvas id="c3variance"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="tab-pane" id="t4">
+  <div class="kpi-row">
+    <div class="kpi bl">
+      <div class="lbl">Match Tiers</div>
+      <div class="val">4</div>
+      <div class="sub">Group → R16 → QF → SF/Final</div>
+    </div>
+    <div class="kpi or">
+      <div class="lbl">Peak Demand Tier</div>
+      <div class="val" style="color:var(--orange)">Final</div>
+      <div class="sub">4.2x demand multiplier</div>
+    </div>
+    <div class="kpi yw">
+      <div class="lbl">Daypart Windows</div>
+      <div class="val">6</div>
+      <div class="sub">Modeled time buckets</div>
+    </div>
+    <div class="kpi aq">
+      <div class="lbl">Watch-Party Peak</div>
+      <div class="val">2–4 PM</div>
+      <div class="sub">Pre-match demand window</div>
+    </div>
+    <div class="kpi vt">
+      <div class="lbl">Pre-Match Window</div>
+      <div class="val">2 hr</div>
+      <div class="sub">Key stocking window</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="ttl">Demand Multiplier by Match Tier — Food/Bev vs. Merch vs. Apparel</div>
+    <div class="sub2">Multiplier relative to non-match baseline. Finals generate 4.2x food/bev demand; merch and apparel spike earlier in the tournament.</div>
+    <div class="cw-tall">
+      <canvas id="c4tier"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Daypart Demand Curve — Match Day vs. Baseline</div>
+      <div class="sub2">90-min match + 2-hr pre + 1-hr post window vs. typical daily demand pattern. Food/bev spikes sharply pre-match.</div>
+      <div class="cw-tall">
+        <canvas id="c4daypart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ttl">Top Watch-Party SKUs by Demand Elasticity</div>
+      <div class="sub2">Uplift during match windows vs. non-match baseline. Beer/seltzers and chips see the most elastic response.</div>
+      <div class="cw-tall">
+        <canvas id="c4sku"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ttl">Demand by Match Round — Tournament Timeline (Weeks 1–8)</div>
+    <div class="sub2">Stacked view shows escalating demand commitment as the tournament progresses. Group stage = broad base; Final week = concentrated spike.</div>
+    <div class="cw-tall">
+      <canvas id="c4timeline"></canvas>
+    </div>
+  </div>
+</div>
+<div class="tab-pane" id="t5">
+  <div class="kpi-row">
+    <div class="kpi bl">
+      <div class="lbl">Initial Commitment</div>
+      <div class="val">30%</div>
+      <div class="sub">Pre-tournament position</div>
+    </div>
+    <div class="kpi or">
+      <div class="lbl">Final Commitment</div>
+      <div class="val" style="color:var(--aqua)">85%</div>
+      <div class="sub">By knockout rounds</div>
+    </div>
+    <div class="kpi yw">
+      <div class="lbl">Learning Loops</div>
+      <div class="val">4</div>
+      <div class="sub">Actuals → update → re-bet</div>
+    </div>
+    <div class="kpi aq">
+      <div class="lbl">Demand Scenarios</div>
+      <div class="val">3</div>
+      <div class="sub">Low / Base / High</div>
+    </div>
+    <div class="kpi vt">
+      <div class="lbl">Analogs Used</div>
+      <div class="val">3</div>
+      <div class="sub">Super Bowl · Local Events · Soccer</div>
+    </div>
+  </div>
+
+  <div class="chart-grid cols2">
+    <div class="card">
+      <div class="ttl">Commitment Curve — Tournament Timeline</div>
+      <div class="sub2">Starting at T-12 weeks before the tournament. Each learning loop steps up the commitment level as actuals confirm or challenge assumptions.</div>
+      <div class="cw-tall">
+        <canvas id="c5curve"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ttl">Scenario Accuracy at Each Learning Loop</div>
+      <div class="sub2">How close were Low/Base/High scenarios to actuals at each checkpoint? Accuracy tightens as the learning loop accumulates signal.</div>
+      <div class="cw-tall">
+        <canvas id="c5accuracy"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="ttl">Historical Analog Predictive Accuracy</div>
+    <div class="sub2">How well did each analog translate to FIFA demand? Super Bowl watch-party food patterns showed the strongest signal transfer.</div>
+    <div class="cw">
+      <canvas id="c5analog"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ttl">Learning Loop Structure</div>
+    <div class="sub2">Four structured loops — each triggered by a tournament milestone, each using new actuals to update assumptions and unlock incremental commitment</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Loop</th>
+            <th>Trigger</th>
+            <th>Data Used</th>
+            <th>What Updated</th>
+            <th>Commitment Delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge b-blue">Loop 1</span></td>
+            <td>Pre-tournament (T-4 wks)</td>
+            <td>Analog calibration, ticket sales, hotel bookings</td>
+            <td>City-tier demand multipliers, initial scenario widths</td>
+            <td><strong>+0% → 30%</strong> (initial commit)</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-orange">Loop 2</span></td>
+            <td>After Group Stage Wk 1-2 actuals</td>
+            <td>POS actuals vs. plan, watch-party conversion rates</td>
+            <td>Food/bev uplift assumptions, daypart curve shape</td>
+            <td><strong>30% → 52%</strong> (+22 pp)</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-good">Loop 3</span></td>
+            <td>Round of 16 complete</td>
+            <td>City-level POS, team elimination outcomes</td>
+            <td>Team affinity weights (adjust for eliminated teams), R16 performance</td>
+            <td><strong>52% → 70%</strong> (+18 pp)</td>
+          </tr>
+          <tr>
+            <td><span class="badge b-warn">Loop 4</span></td>
+            <td>Quarterfinal complete</td>
+            <td>SF/Final market data, remaining team fan concentration</td>
+            <td>Final-week city allocations, apparel assortment for surviving teams</td>
+            <td><strong>70% → 85%</strong> (+15 pp)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="decision-block">
+    <div class="db-ttl">Why Staged Commitment Beats Full Pre-Commitment</div>
+    <p>No analog perfectly predicts a first-of-kind event. Committing 100% of inventory before the tournament would lock capital in scenarios that actuals quickly contradict — wrong cities, wrong teams still in, wrong SKU mix. The staged approach trades a small margin loss on expedited orders (loops 2–4) for a major reduction in markdown risk on committed-but-wrong inventory. Each loop narrows the scenario cone and unlocks the next tranche of commitment with much higher confidence.</p>
+  </div>
+</div>
+
+
+
+</main>
+
+<footer>
+  <span>Built by <strong>Astha Jain</strong></span>
+  <a href="https://linkedin.com/in/asthajain12" target="_blank" rel="noopener">LinkedIn ↗</a>
+  <a href="https://github.com/asthaj12" target="_blank" rel="noopener">GitHub ↗</a>
+  <a href="https://asthaj12.github.io/" target="_blank" rel="noopener">Portfolio ↗</a>
+  <a href="mailto:asthajain.sc@gmail.com">Email</a>
+  <span style="margin-left:auto;color:var(--muted)">Event Demand Localization — FIFA 2026 · Numbers are illustrative for portfolio purposes. No proprietary Walmart data reproduced.</span>
+</footer>
+
+<script>
     function showTab(id, btn) {
-      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       btn.classList.add('active');
     }
 
-    // --- Shared chart defaults ---
-    Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    Chart.defaults.color = '#52514e';
-    Chart.defaults.plugins.legend.labels.boxWidth = 12;
-    Chart.defaults.plugins.legend.labels.padding = 16;
+    Chart.defaults.font.family = 'system-ui,-apple-system,"Segoe UI",sans-serif';
+    Chart.defaults.font.size = 11;
+    Chart.defaults.plugins.legend.labels.boxWidth = 10;
+    Chart.defaults.plugins.legend.labels.padding = 12;
+    Chart.defaults.color = '#898781';
 
     const BLUE = '#6366f1';
     const ORANGE = '#eb6834';
@@ -804,11 +605,6 @@
       };
     }
 
-    // ============================
-    // TAB 1 CHARTS
-    // ============================
-
-    // 1a. Donut — $200M decomposition
     new Chart(document.getElementById('c1donut'), {
       type: 'doughnut',
       data: {
@@ -839,7 +635,6 @@
       }
     });
 
-    // 1b. Bar — Blanket vs. Hyper-Local
     new Chart(document.getElementById('c1bar'), {
       type: 'bar',
       data: {
@@ -852,7 +647,7 @@
             borderRadius: 4
           },
           {
-            label: 'Hyper-Local Model',
+            label: 'Store-Level Model',
             data: [42, 36, 28, 26, 14, 18],
             backgroundColor: [BLUE, BLUE, BLUE, AQUA, ORANGE, ORANGE].map(c => c + 'cc'),
             borderRadius: 4
@@ -870,7 +665,6 @@
       }
     });
 
-    // 1c. Line — Staged commitment curve
     new Chart(document.getElementById('c1line'), {
       type: 'line',
       data: {
@@ -904,11 +698,6 @@
       }
     });
 
-    // ============================
-    // TAB 2 CHARTS
-    // ============================
-
-    // 2a. Horizontal bar — Host city uplift multiplier
     new Chart(document.getElementById('c2hbar'), {
       type: 'bar',
       data: {
@@ -939,7 +728,6 @@
       }
     });
 
-    // 2b. Line — Demand decay by distance
     new Chart(document.getElementById('c2decay'), {
       type: 'line',
       data: {
@@ -982,7 +770,6 @@
       }
     });
 
-    // 2c. Grouped bar — Category uplift by city tier
     new Chart(document.getElementById('c2tier'), {
       type: 'bar',
       data: {
@@ -1008,11 +795,6 @@
       }
     });
 
-    // ============================
-    // TAB 3 CHARTS
-    // ============================
-
-    // 3a. Horizontal bar — Team affinity markets
     new Chart(document.getElementById('c3affinity'), {
       type: 'bar',
       data: {
@@ -1040,7 +822,6 @@
       }
     });
 
-    // 3b. Bar — Team affinity demand premium by category
     new Chart(document.getElementById('c3premium'), {
       type: 'bar',
       data: {
@@ -1067,7 +848,6 @@
       }
     });
 
-    // 3c. Grouped bar — With vs. Without affinity model
     new Chart(document.getElementById('c3variance'), {
       type: 'bar',
       data: {
@@ -1101,11 +881,6 @@
       }
     });
 
-    // ============================
-    // TAB 4 CHARTS
-    // ============================
-
-    // 4a. Grouped bar — Demand multiplier by match tier
     new Chart(document.getElementById('c4tier'), {
       type: 'bar',
       data: {
@@ -1131,7 +906,6 @@
       }
     });
 
-    // 4b. Line — Daypart demand curve
     const hours = ['6am','7am','8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm','5pm','6pm','7pm','8pm','9pm','10pm','11pm','12am'];
     new Chart(document.getElementById('c4daypart'), {
       type: 'line',
@@ -1177,7 +951,6 @@
       }
     });
 
-    // 4c. Bar — Top watch-party SKUs
     new Chart(document.getElementById('c4sku'), {
       type: 'bar',
       data: {
@@ -1211,7 +984,6 @@
       }
     });
 
-    // 4d. Stacked bar — Demand by round over timeline
     new Chart(document.getElementById('c4timeline'), {
       type: 'bar',
       data: {
@@ -1234,11 +1006,6 @@
       }
     });
 
-    // ============================
-    // TAB 5 CHARTS
-    // ============================
-
-    // 5a. Line — Commitment curve
     const commitWeeks = ['T-12','T-8','T-4','Grp Wk1','Grp Wk2','Grp Wk4','R16','QF','Final'];
     new Chart(document.getElementById('c5curve'), {
       type: 'line',
@@ -1285,7 +1052,6 @@
       }
     });
 
-    // 5b. Grouped bar — Scenario accuracy at each loop
     new Chart(document.getElementById('c5accuracy'), {
       type: 'bar',
       data: {
@@ -1312,7 +1078,6 @@
       }
     });
 
-    // 5c. Bar — Historical analog accuracy
     new Chart(document.getElementById('c5analog'), {
       type: 'bar',
       data: {
